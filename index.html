@@ -38,8 +38,8 @@
         vec3 diffuseLightWeighting = uPointLightingDiffuseColor * diffuseLightBrightness;
         
         
-        vec3 materialAmbientColor = vec3(1,0,0);
-        vec3 materialDiffuseColor = vec3(0,1,0);
+        vec3 materialAmbientColor = vec3(1,1,1);
+        vec3 materialDiffuseColor = vec3(1,1,1);
         
         
         gl_FragColor = vec4(materialAmbientColor*ambientLightWeighting+materialDiffuseColor*diffuseLightWeighting,1);
