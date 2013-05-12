@@ -235,7 +235,8 @@ function drawScene() {
 
 	mat4.translate(mvMatrix, [ -5, 0, -30 ]);
 //	mat4.rotate(mvMatrix, degToRad(30.4), [ 1, 0, -1 ]);
-	mat4.rotate(mvMatrix, degToRad(23.4), [ 1, 0, 0 ]);
+	mat4.rotate(mvMatrix, degToRad(90), [ 1, 1, 0 ]);
+//	mat4.rotate(mvMatrix, degToRad(25), [ 0, 0, 1 ]);
 	mat4.rotate(mvMatrix, degToRad(teapotAngle), [ 0, 1, 0 ]);
 
 	gl.activeTexture(gl.TEXTURE0);
