@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<title>Elbrus wireframe</title>
+<title>Campitello map</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 <style>
@@ -38,15 +38,18 @@
             geometry.vertices[i].z = data[i] / 65535 * 10;
         }
 
-        var material = new THREE.MeshPhongMaterial({
-            color: 0xdddddd, 
-            wireframe: true
-        });
+    var material = new THREE.MeshPhongMaterial({
+	  map: THREE.ImageUtils.loadTexture('campitello_relief.png')
+    });
+
 
         var plane = new THREE.Mesh(geometry, material);
         scene.add(plane);
+	scene.add(new THREE.AmbientLight(0xeeeeee));
 
     });
+
+
 
     var controls = new THREE.TrackballControls(camera); 
 
