@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Campitello map</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<style>
+    body { margin: 0; overflow: hidden; }
+</style>
+</head>
+<body>
+<div id="webgl"></div>
+<script src="three.min.js"></script>
+<script src="TrackballControls.js"></script> 
+<script src="TerrainLoader.js"></script> 
+<script>
+
+    var width  = window.innerWidth,
+        height = window.innerHeight;
+
+    var scene = new THREE.Scene();
+
+    var axes = new THREE.AxisHelper(400);
+    scene.add(axes);
+
+    var camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    camera.position.set(0, -50, 50);
+
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize(width, height);
+
+    var terrainLoader = new THREE.TerrainLoader();
+    var filename = "campitello_relief.png";
+   terrainLoader.load('campitello.bin', function(data) {
+
+        var geometry = new THREE.PlaneGeometry(60, 60, 298, 211);
+
+        for (var i = 0, l = geometry.vertices.length; i < l; i++) {
+            geometry.vertices[i].z = data[i] / 65535 * 10;
+        }
+
+    var material = new THREE.MeshPhongMaterial({
+	  map: THREE.ImageUtils.loadTexture(filename)
+    });
+
+
+        var plane00 = new THREE.Mesh(geometry, material);
+        var plane01 = new THREE.Mesh(geometry, material);
+        var plane02 = new THREE.Mesh(geometry, material);
+        var plane10 = new THREE.Mesh(geometry, material);
+        var plane11 = new THREE.Mesh(geometry, material);
+        var plane12 = new THREE.Mesh(geometry, material);
+        var plane20 = new THREE.Mesh(geometry, material);
+        var plane21 = new THREE.Mesh(geometry, material);
+        var plane22 = new THREE.Mesh(geometry, material);
+  	p = new THREE.Vector3(-60, 60, 0);
+	plane00.position.copy(p);
+  	p = new THREE.Vector3(0,60, 0);
+	plane01.position.copy(p);
+    	var p = new THREE.Vector3(60,60, 0);
+	plane02.position.copy(p);
+  	p = new THREE.Vector3(-60, 0, 0);
+	plane10.position.copy(p);
+  	p = new THREE.Vector3(60,0, 0);
+	plane12.position.copy(p);
+  	p = new THREE.Vector3(-60, -60, 0);
+	plane20.position.copy(p);
+  	p = new THREE.Vector3(0, -60, 0);
+	plane21.position.copy(p);
+  	p = new THREE.Vector3(60, -60, 0);
+	plane22.position.copy(p);
+        scene.add(plane00);
+        scene.add(plane01);
+        scene.add(plane02);
+        scene.add(plane10);
+        scene.add(plane11);
+        scene.add(plane12);
+        scene.add(plane20);
+        scene.add(plane21);
+        scene.add(plane22);
+
+	scene.add(new THREE.AmbientLight(0xeeeeee));
+
+    });
+
+
+    var controls = new THREE.TrackballControls(camera); 
+
+    document.getElementById('webgl').appendChild(renderer.domElement);
+
+    render();
+
+    function render() {
+        controls.update();    
+        requestAnimationFrame(render);
+        renderer.render(scene, camera);
+    }
+
+
+
+</script>
+</body>
+</html>
