@@ -15,10 +15,34 @@
 <script src="TerrainLoader.js"></script> 
 <script>
 
+function load(filename, p) {
+    var terrainLoader = new THREE.TerrainLoader();
+   terrainLoader.load(filename+'.bin', function(data) {
+
+        var geometry = new THREE.PlaneGeometry(60, 60, 199, 199);
+
+        for (var i = 0, l = geometry.vertices.length; i < l; i++) {
+            geometry.vertices[i].z = data[i] / 65535 * 20;
+        }
+
+    var material = new THREE.MeshPhongMaterial({
+	  map: THREE.ImageUtils.loadTexture(filename+'_relief.png')
+    });
+
+
+        var plane00 = new THREE.Mesh(geometry, material);
+	plane00.position.copy(p);
+        scene.add(plane00);
+    });
+
+
+}
+
     var width  = window.innerWidth,
         height = window.innerHeight;
 
     var scene = new THREE.Scene();
+	scene.add(new THREE.AmbientLight(0xeeeeee));
 
     var axes = new THREE.AxisHelper(400);
     scene.add(axes);
@@ -29,62 +53,45 @@
     var renderer = new THREE.WebGLRenderer();
     renderer.setSize(width, height);
 
-    var terrainLoader = new THREE.TerrainLoader();
-    var filename = "campitello_relief.png";
-   terrainLoader.load('campitello.bin', function(data) {
+    var filename = "00";
+    var p = new THREE.Vector3(-60, 60, 0);
+    load(filename, p);
 
-        var geometry = new THREE.PlaneGeometry(60, 60, 298, 211);
+    filename = "01";
+    p = new THREE.Vector3(0,60, 0);
+    load(filename, p);
 
-        for (var i = 0, l = geometry.vertices.length; i < l; i++) {
-            geometry.vertices[i].z = data[i] / 65535 * 10;
-        }
+    filename = "02";
+    p = new THREE.Vector3(60,60, 0);
+    load(filename, p);
 
-    var material = new THREE.MeshPhongMaterial({
-	  map: THREE.ImageUtils.loadTexture(filename)
-    });
+    filename = "10";
+    p = new THREE.Vector3(-60, 0, 0);
+    load(filename, p);
 
+    filename = "11";
+    p = new THREE.Vector3(0, 0, 0);
+    load(filename, p);
 
-        var plane00 = new THREE.Mesh(geometry, material);
-        var plane01 = new THREE.Mesh(geometry, material);
-        var plane02 = new THREE.Mesh(geometry, material);
-        var plane10 = new THREE.Mesh(geometry, material);
-        var plane11 = new THREE.Mesh(geometry, material);
-        var plane12 = new THREE.Mesh(geometry, material);
-        var plane20 = new THREE.Mesh(geometry, material);
-        var plane21 = new THREE.Mesh(geometry, material);
-        var plane22 = new THREE.Mesh(geometry, material);
-  	p = new THREE.Vector3(-60, 60, 0);
-	plane00.position.copy(p);
-  	p = new THREE.Vector3(0,60, 0);
-	plane01.position.copy(p);
-    	var p = new THREE.Vector3(60,60, 0);
-	plane02.position.copy(p);
-  	p = new THREE.Vector3(-60, 0, 0);
-	plane10.position.copy(p);
-  	p = new THREE.Vector3(60,0, 0);
-	plane12.position.copy(p);
-  	p = new THREE.Vector3(-60, -60, 0);
-	plane20.position.copy(p);
-  	p = new THREE.Vector3(0, -60, 0);
-	plane21.position.copy(p);
-  	p = new THREE.Vector3(60, -60, 0);
-	plane22.position.copy(p);
-        scene.add(plane00);
-        scene.add(plane01);
-        scene.add(plane02);
-        scene.add(plane10);
-        scene.add(plane11);
-        scene.add(plane12);
-        scene.add(plane20);
-        scene.add(plane21);
-        scene.add(plane22);
+    filename = "12";
+    p = new THREE.Vector3(60,0, 0);
+    load(filename, p);
 
-	scene.add(new THREE.AmbientLight(0xeeeeee));
+    filename = "20";
+    p = new THREE.Vector3(-60,-60, 0);
+    load(filename, p);
 
-    });
+    filename = "21";
+    p = new THREE.Vector3(0, -60, 0);
+    load(filename, p);
+    
+    filename = "22";
+    p = new THREE.Vector3(60, -60, 0);
+    load(filename, p);
 
 
-    var controls = new THREE.TrackballControls(camera); 
+
+ var controls = new THREE.TrackballControls(camera); 
 
     document.getElementById('webgl').appendChild(renderer.domElement);
 
