@@ -15,6 +15,25 @@
 <script src="TerrainLoader.js"></script> 
 <script>
 
+var planes = [	[ 
+			{"pos" : new THREE.Vector3(-60, 60, 0)},
+			{"pos" : new THREE.Vector3(0,60, 0)},
+			{"pos" : new THREE.Vector3(60,60, 0)}
+		],
+		[
+		    { "pos" : new THREE.Vector3(-60, 0, 0) },
+		    { "pos" : new THREE.Vector3(0, 0, 0) },
+		    { "pos" : new THREE.Vector3(60,0, 0) }
+
+		],
+		[
+		    { "pos" : new THREE.Vector3(-60,-60, 0) },
+		    { "pos" : new THREE.Vector3(0, -60, 0) },
+		    { "pos" : new THREE.Vector3(60, -60, 0) }
+		]		
+		
+		]
+
 function load(filename, p) {
     var terrainLoader = new THREE.TerrainLoader();
    terrainLoader.load(filename+'.bin', function(data) {
@@ -22,7 +41,7 @@ function load(filename, p) {
         var geometry = new THREE.PlaneGeometry(60, 60, 199, 199);
 
         for (var i = 0, l = geometry.vertices.length; i < l; i++) {
-            geometry.vertices[i].z = data[i] / 65535 * 20;
+            geometry.vertices[i].z = data[i] / 65535 * 180;
         }
 
     var material = new THREE.MeshPhongMaterial({
@@ -54,39 +73,39 @@ function load(filename, p) {
     renderer.setSize(width, height);
 
     var filename = "00";
-    var p = new THREE.Vector3(-60, 60, 0);
+    var p = planes[0][0].pos;
     load(filename, p);
 
     filename = "01";
-    p = new THREE.Vector3(0,60, 0);
+    p = planes[0][1].pos;
     load(filename, p);
 
     filename = "02";
-    p = new THREE.Vector3(60,60, 0);
+    p = planes[0][2].pos
     load(filename, p);
 
     filename = "10";
-    p = new THREE.Vector3(-60, 0, 0);
+    p = planes[1][0].pos
     load(filename, p);
 
     filename = "11";
-    p = new THREE.Vector3(0, 0, 0);
+    p = planes[1][1].pos
     load(filename, p);
 
     filename = "12";
-    p = new THREE.Vector3(60,0, 0);
+    p = planes[1][2].pos
     load(filename, p);
 
     filename = "20";
-    p = new THREE.Vector3(-60,-60, 0);
+    p = planes[2][0].pos
     load(filename, p);
 
     filename = "21";
-    p = new THREE.Vector3(0, -60, 0);
+    p = planes[2][1].pos
     load(filename, p);
     
     filename = "22";
-    p = new THREE.Vector3(60, -60, 0);
+    p = planes[2][2].pos
     load(filename, p);
 
 
@@ -102,9 +121,41 @@ function load(filename, p) {
         requestAnimationFrame(render);
         renderer.render(scene, camera);
     }
+var row = 0;
+var col = 0;
 
+function processPosition() {
+	col = col % 10;
+	row = row % 10;
+	if(0 > col) {
+		col = 0;
+	}
+	if(0 > row) {
+		row = 0;
+	}
+	alert(col + " " + row);	
+}
 
-
+  function onDocumentKeyDown(event){
+// Get the key code of the pressed key
+var keyCode = event.which;
+if(keyCode == 37) {//left
+	col -= 1;
+	processPosition();
+} else if(keyCode == 39) {//right
+	col += 1;
+	processPosition();
+}	
+else if(keyCode == 38) {//up
+	row -= 1;	
+	processPosition();
+} else if(keyCode == 40) {//down 
+	row += 1;
+	processPosition();
+}
+// 'F' - Toggle through the texture filters
+}
+   document.addEventListener("keydown", onDocumentKeyDown, false);
 </script>
 </body>
 </html>
