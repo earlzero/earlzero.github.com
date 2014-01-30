@@ -32,7 +32,7 @@
     var terrainLoader = new THREE.TerrainLoader();
     terrainLoader.load('campitello.bin', function(data) {
 
-        var geometry = new THREE.PlaneGeometry(60, 60, 298, 211);
+        var geometry = new THREE.PlaneGeometry(60, 60, 297, 210);
 
         for (var i = 0, l = geometry.vertices.length; i < l; i++) {
             geometry.vertices[i].z = data[i] / 65535 * 10;
