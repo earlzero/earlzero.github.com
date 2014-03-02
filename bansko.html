@@ -20,11 +20,11 @@
 
     var scene = new THREE.Scene();
 
-    var axes = new THREE.AxisHelper(400);
-    scene.add(axes);
+ //   var axes = new THREE.AxisHelper(400);
+ //   scene.add(axes);
 
     var camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, -200, 200);
+    camera.position.set(0, -400, 200);
 
 
     var renderer = new THREE.WebGLRenderer();
@@ -45,6 +45,7 @@
 
 
         var plane = new THREE.Mesh(geometry, material);
+	plane.rotation.z = 1.2 * Math.PI;
         scene.add(plane);
 	scene.add(new THREE.AmbientLight(0xeeeeee));
 
