@@ -23,7 +23,7 @@
  //   var axes = new THREE.AxisHelper(400);
  //   scene.add(axes);
 
-    var camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    var camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 2000);
     camera.position.set(0, -400, 200);
 
 
@@ -36,7 +36,7 @@
         var geometry = new THREE.PlaneGeometry(321, 439, 320, 438);
 
         for (var i = 0, l = geometry.vertices.length; i < l; i++) {
-            geometry.vertices[i].z = data[i] / 65535 * 100;
+            geometry.vertices[i].z = data[i] / 65535 * 44;
         }
 
     var material = new THREE.MeshPhongMaterial({
