@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Bansko map</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<style>
+    body { margin: 0; overflow: hidden; }
+</style>
+</head>
+<body>
+<div id="webgl"></div>
+<script src="three.min.js"></script>
+<script src="FlyControls.js"></script> 
+<script src="TerrainLoader.js"></script> 
+<script>
+
+    var width  = window.innerWidth,
+        height = window.innerHeight;
+
+    var scene = new THREE.Scene();
+    var container = document.getElementById('webgl');
+    var axes = new THREE.AxisHelper(400);
+    scene.add(axes);
+
+    var camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 2000);
+    camera.position.set(20, -200, 200);
+    camera.up = new THREE.Vector3(0, 1,0) ;
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize(width, height);
+
+    var terrainLoader = new THREE.TerrainLoader();
+    terrainLoader.load('bansko.bin', function(data) {
+
+        var geometry = new THREE.PlaneGeometry(321, 439, 320, 438);
+
+        for (var i = 0, l = geometry.vertices.length; i < l; i++) {
+            geometry.vertices[i].z = data[i] / 65535 * 44;
+        }
+
+    var material = new THREE.MeshPhongMaterial({
+	  map: THREE.ImageUtils.loadTexture('bansko_relief.png')
+    });
+
+
+        var plane = new THREE.Mesh(geometry, material);
+	plane.rotation.z = 1.2 * Math.PI;
+        scene.add(plane);
+	scene.add(new THREE.AmbientLight(0xeeeeee));
+
+    });
+
+
+
+    var controls = new THREE.FlyControls(camera); 
+    controls.movementSpeed = 5;
+    controls.domElement = container;
+    controls.rollSpeed = Math.PI / 96;
+    controls.autoForward = false;
+    controls.dragToLook = false;
+
+    container.appendChild(renderer.domElement);
+   render();
+
+    function render() {
+        controls.update(1);    
+        requestAnimationFrame(render);
+        renderer.render(scene, camera);
+    }
+
+
+
+</script>
+</body>
+</html>
