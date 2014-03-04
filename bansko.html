@@ -36,7 +36,7 @@
         var geometry = new THREE.PlaneGeometry(321, 439, 320, 438);
 
         for (var i = 0, l = geometry.vertices.length; i < l; i++) {
-            geometry.vertices[i].z = data[i] / 65535 * 44;
+            geometry.vertices[i].z = data[i] / 65535 * 88;
         }
 
     var material = new THREE.MeshPhongMaterial({
