@@ -25,17 +25,17 @@
 
     var camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 2000);
     camera.position.set(20, -200, 200);
-    camera.lookAt(new THREE.Vector3(0, 1,0)) ;
+//    camera.up = new THREE.Vector3(0, 1,0) ;
     var renderer = new THREE.WebGLRenderer();
     renderer.setSize(width, height);
 
     var terrainLoader = new THREE.TerrainLoader();
     terrainLoader.load('bansko.bin', function(data) {
 
-        var geometry = new THREE.PlaneGeometry(321, 439, 320, 438);
+        var geometry = new THREE.PlaneGeometry(600, 600, 599, 599);
 
         for (var i = 0, l = geometry.vertices.length; i < l; i++) {
-            geometry.vertices[i].z = data[i] / 65535 * 88;
+            geometry.vertices[i].z = data[i] / 65535 * 178;
         }
 
     var material = new THREE.MeshPhongMaterial({

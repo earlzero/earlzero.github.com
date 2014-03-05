@@ -11,7 +11,7 @@
 <body>
 <div id="webgl"></div>
 <script src="three.min.js"></script>
-<script src="TrackballControls.js"></script> 
+<script src="FlyControls.js"></script> 
 <script src="TerrainLoader.js"></script> 
 <script>
 
@@ -48,14 +48,15 @@
 
     });
 
-    var controls = new THREE.TrackballControls(camera); 
-
+    var controls = new THREE.FlyControls(camera); 
+    controls.domElement = document.getElementById('webgl');
+    controls.movementSpeed = 5;
     document.getElementById('webgl').appendChild(renderer.domElement);
 
     render();
 
     function render() {
-        controls.update();    
+        controls.update(1);    
         requestAnimationFrame(render);
         renderer.render(scene, camera);
     }

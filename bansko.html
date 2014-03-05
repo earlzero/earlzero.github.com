@@ -33,10 +33,10 @@
     var terrainLoader = new THREE.TerrainLoader();
     terrainLoader.load('bansko.bin', function(data) {
 
-        var geometry = new THREE.PlaneGeometry(321, 439, 320, 438);
+        var geometry = new THREE.PlaneGeometry(600, 600, 599, 599);
 
         for (var i = 0, l = geometry.vertices.length; i < l; i++) {
-            geometry.vertices[i].z = data[i] / 65535 * 88;
+            geometry.vertices[i].z = data[i] / 65535 * 178;
         }
 
     var material = new THREE.MeshPhongMaterial({
