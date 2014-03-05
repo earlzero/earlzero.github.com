@@ -24,8 +24,8 @@
     scene.add(axes);
 
     var camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 2000);
-    camera.position.set(20, -200, 200);
-//    camera.up = new THREE.Vector3(0, 1,0) ;
+    camera.position.set(20, -400, 400);
+    camera.lookAt(new THREE.Vector3(0, 200,0));
     var renderer = new THREE.WebGLRenderer();
     renderer.setSize(width, height);
 
