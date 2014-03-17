@@ -14,9 +14,9 @@ THREE.FlyControls = function ( object, domElement ) {
 	this.movementSpeed = 1.0;
 	this.rollSpeed = 0.005;
 
-	this.dragToLook = false;
+	this.dragToLook = true;
 	this.autoForward = false;
-
+	this.clicked = false;
 	// disable default target object behavior
 
 	// internals
@@ -128,8 +128,9 @@ THREE.FlyControls = function ( object, domElement ) {
 
 			switch ( event.button ) {
 
-				case 0: this.moveState.forward = 1; break;
-				case 2: this.moveState.back = 1; break;
+				case 0: this.clicked = true; break;
+			//	case 0: this.moveState.forward = 1; break;
+			//	case 2: this.moveState.back = 1; break;
 
 			}
 
@@ -141,7 +142,7 @@ THREE.FlyControls = function ( object, domElement ) {
 
 	this.mousemove = function( event ) {
 
-		if ( !this.dragToLook || this.mouseStatus > 0 ) {
+		if ( this.clicked && (!this.dragToLook || this.mouseStatus > 0 )) {
 
 			var container = this.getContainerDimensions();
 			var halfWidth  = container.size[ 0 ] / 2;
@@ -170,9 +171,9 @@ THREE.FlyControls = function ( object, domElement ) {
 		} else {
 
 			switch ( event.button ) {
-
-				case 0: this.moveState.forward = 0; break;
-				case 2: this.moveState.back = 0; break;
+				case 0: this.clicked = false; break;
+//				case 0: this.moveState.forward = 0; break;
+//				case 2: this.moveState.back = 0; break;
 
 			}
 
@@ -219,7 +220,9 @@ THREE.FlyControls = function ( object, domElement ) {
 		this.rotationVector.x = ( -this.moveState.pitchDown + this.moveState.pitchUp );
 		this.rotationVector.y = ( -this.moveState.yawRight  + this.moveState.yawLeft );
 		this.rotationVector.z = ( -this.moveState.rollRight + this.moveState.rollLeft );
-
+			
+		this.moveState.pitchDown = 0;
+		this.moveState.yawLeft = 0;
 		//console.log( 'rotate:', [ this.rotationVector.x, this.rotationVector.y, this.rotationVector.z ] );
 
 	};
@@ -256,9 +259,9 @@ THREE.FlyControls = function ( object, domElement ) {
 
 	this.domElement.addEventListener( 'contextmenu', function ( event ) { event.preventDefault(); }, false );
 
-//	this.domElement.addEventListener( 'mousemove', bind( this, this.mousemove ), false );
-//	this.domElement.addEventListener( 'mousedown', bind( this, this.mousedown ), false );
-//	this.domElement.addEventListener( 'mouseup',   bind( this, this.mouseup ), false );
+	this.domElement.addEventListener( 'mousemove', bind( this, this.mousemove ), false );
+	this.domElement.addEventListener( 'mousedown', bind( this, this.mousedown ), false );
+	this.domElement.addEventListener( 'mouseup',   bind( this, this.mouseup ), false );
 
 	window.addEventListener( 'keydown', bind( this, this.keydown ), false );
 	window.addEventListener( 'keyup',   bind( this, this.keyup ), false );
