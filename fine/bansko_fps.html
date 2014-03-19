@@ -13,6 +13,23 @@
 <script src="three.min.js"></script>
 <script src="FlyControls.js"></script> 
 <script src="TerrainLoader.js"></script> 
+<script id="vertexShader" type="x-shader/x-vertex">
+    varying vec2 vUv;
+ 
+    void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+</script>
+<script id="pixelShader" type="x-shader/x-fragment">
+uniform sampler2D texture;
+varying vec2 vUv;
+
+void main() {
+    vec4 color = texture2D(texture, vUv);
+    gl_FragColor = color;
+}
+</script>
 <script>
 
     var width  = window.innerWidth,
@@ -38,9 +55,15 @@
             geometry.vertices[i].z = data[i] / 65535 * 178;
         }
 
-    var material = new THREE.MeshPhongMaterial({
-	  map: THREE.ImageUtils.loadTexture('bansko_relief.png')
-    });
+        var uniforms = {
+            texture: { type: "t", value: THREE.ImageUtils.loadTexture('bansko_relief.png') }
+        };
+
+var material = new THREE.ShaderMaterial({
+    uniforms: uniforms,
+    vertexShader: document.getElementById('vertexShader').innerHTML,
+    fragmentShader: document.getElementById('pixelShader').innerHTML
+});
 
 
         var plane = new THREE.Mesh(geometry, material);
