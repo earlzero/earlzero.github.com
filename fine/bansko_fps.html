@@ -49,7 +49,7 @@ void main() {
     var terrainLoader = new THREE.TerrainLoader();
     terrainLoader.load('bansko.bin', function(data) {
 
-        var geometry = new THREE.PlaneGeometry(426, 600, 425, 599);
+        var geometry = new THREE.PlaneGeometry(658, 900, 657, 899);
 
         for (var i = 0, l = geometry.vertices.length; i < l; i++) {
             geometry.vertices[i].z = data[i] / 65535 * 178;
