@@ -1,0 +1,135 @@
+<html>
+
+<head>
+    <title>Test</title>
+</head>
+
+<body>
+    <video autoplay></video>
+
+    <script>
+
+        // const from = 1;
+        // const to = 2;
+
+        const from = 2;
+        const to = 1;
+
+
+        const remoteView = document.querySelector('video');
+
+        class SignalingChannel {
+            constructor(url) {
+                this.url = url;
+                this.socket = new WebSocket(url);
+            }
+
+            send(data) {
+                var socket = this.socket;
+
+                socket.send(JSON.stringify(data))
+                // socket.addEventListener('open', function (msg) {
+                //     console.log("sending")
+                //     socket.send(msg);
+                // });
+            }
+
+            addListener(handler) {
+                this.socket.addEventListener('message', handler);
+            }
+        };
+
+
+        const signaling = new SignalingChannel(`ws://192.168.1.205:8080/?from=${from}&to=${to}`);
+        const constraints = { audio: false, video: true };
+        const configuration = { iceServers: [{ urls: 'stun:stun.iptel.org' }] };
+        const pc = new RTCPeerConnection(configuration);
+
+        pc.onicecandidate = ({ candidate }) => {
+            console.log(`ice candidate ${JSON.stringify(candidate)}`)
+            let msg = { "id": to, "body": JSON.stringify({ "type": "candidate", "body": candidate }) }
+            signaling.send(msg)
+        };
+
+
+        pc.onnegotiationneeded = async () => {
+            console.log('Negotiation is needed')
+            try {
+                await pc.setLocalDescription(await pc.createOffer());
+                // send the offer to the other peer
+                let msg = { "id": to, "body": JSON.stringify({ "type": "desc", "body": pc.localDescription }) }
+                signaling.send(msg);
+                // signaling.send({ desc: pc.localDescription });
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        pc.ontrack = (event) => {
+            // don't set srcObject again if it is already set.
+            if (remoteView.srcObject) return;
+            remoteView.srcObject = event.streams[0];
+            console.log("New track received")
+        };
+
+
+        async function start() {
+            try {
+                // get local stream, show it in self-view and add it to be sent
+                const stream =
+                    await navigator.mediaDevices.getUserMedia(constraints);
+                stream.getTracks().forEach((track) =>
+                    pc.addTrack(track, stream));
+                // selfView.srcObject = stream;
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+
+        const listener = async (data) => {
+            try {
+                console.log(`Signaling message received ${JSON.stringify(data)}`)
+                if (data.body != null) {
+                    var obj = JSON.parse(data.body)
+                    if (obj.type == "desc") {
+                        desc = obj;
+                        // if we get an offer, we need to reply with an answer
+                        if (desc.type === 'offer') {
+                            await pc.setRemoteDescription(desc);
+                            const stream =
+                                await navigator.mediaDevices.getUserMedia(constraints);
+                            stream.getTracks().forEach((track) =>
+                                pc.addTrack(track, stream));
+                            await pc.setLocalDescription(await pc.createAnswer());
+
+
+                            let msg = { "id": to, "body": JSON.stringify({ "type": "desc", "body": pc.localDescription }) }
+                            signaling.send(msg);
+                        } else if (desc.type === 'answer') {
+                            await pc.setRemoteDescription(desc);
+                        } else {
+                            console.log('Unsupported SDP type.');
+                        }
+                    } else if (obj.type == "candidate") {
+                        await pc.addIceCandidate(obj);
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        signaling.addListener(data => {
+            console.log("adding listener again")
+            listener(data).then(res => {
+                console.log("Finished")
+            });
+        });
+
+        start().then(result => console.log("started"));
+
+    </script>
+</body>
+
+</html>
