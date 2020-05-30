@@ -6,81 +6,156 @@
 
 <body>
     <video autoplay></video>
-
+    <button onclick="start()">Call</button>
+    <button onclick="hangup(true)">Hangup</button>
+    <button onclick="notify()">Notify</button>
     <script>
 
         const from = 1;
         const to = 2;
 
-        // const from = 2;
-        // const to = 1;
+
+        let sendChannel = null;       // RTCDataChannel for the local (sender)
+        let receiveChannel = null;
 
 
         const remoteView = document.querySelector('video');
 
         class SignalingChannel {
+
+            connect() {
+                this.socket = new WebSocket(this.url);
+                let me = this;
+
+                this.socket.addEventListener('error', function (evt) {
+                    console.log(`error is ${JSON.stringify(evt)}`);
+                });
+
+                this.socket.addEventListener('close', (event) => {
+                    console.log("Reopening socket")
+                    hangup(false);
+                    setTimeout(function () {
+                        me.connect();
+                    }, 1000);
+                });
+
+            }
+
+
             constructor(url) {
                 this.url = url;
-                this.socket = new WebSocket(url);
             }
 
             send(data) {
-                var socket = this.socket;
-
-                socket.send(JSON.stringify(data))
-                // socket.addEventListener('open', function (msg) {
-                //     console.log("sending")
-                //     socket.send(msg);
-                // });
+                this.socket.send(JSON.stringify(data))
             }
 
             addListener(handler) {
+                console.log("Appending listener")
                 this.socket.addEventListener('message', handler);
             }
+
         };
 
 
-        const signaling = new SignalingChannel(`ws://192.168.1.205:8080/?from=${from}&to=${to}`);
-        const constraints = { audio: false, video: true };
-        const configuration = { iceServers: [{ urls: 'stun:stun.iptel.org' }] };
-        const pc = new RTCPeerConnection(configuration);
-
-        pc.onicecandidate = ({ candidate }) => {
-            console.log(`ice candidate ${JSON.stringify(candidate)}`)
-            let msg = { "id": to, "body": JSON.stringify({ "type": "candidate", "body": candidate }) }
-            signaling.send(msg)
-        };
-
-
-        pc.onnegotiationneeded = async () => {
-            console.log('Negotiation is needed')
-            try {
-                await pc.setLocalDescription(await pc.createOffer());
-                // send the offer to the other peer
-                let msg = { "id": to, "body": JSON.stringify({ "type": "desc", "body": pc.localDescription }) }
-                signaling.send(msg);
-                // signaling.send({ desc: pc.localDescription });
-            } catch (err) {
-                console.error(err);
+        const signaling = new SignalingChannel(`wss://ezie.duckdns.org:8443/?from=${from}&to=${to}`);
+        signaling.connect();
+        const constraints = {
+            audio: false,
+            "video": {
+                "width": {
+                    "min": "300",
+                    "max": "640"
+                },
+                "height": {
+                    "min": "200",
+                    "max": "480"
+                }
             }
         };
+        const configuration = { iceServers: [{ urls: 'stun:stun.ekiga.net' }] };
+        let pc = null;
 
-        pc.ontrack = (event) => {
-            console.log("New track received")
-            // don't set srcObject again if it is already set.
-            if (remoteView.srcObject) return;
-            remoteView.srcObject = event.streams[0];
-        };
+        async function notify() {
+            if (sendChannel == null) {
+                sendChannel = pc.createDataChannel("sendChannel");
+            }
+            sendChannel.send("{\"operation\": \"switch_camera\"}");
+        }
 
+        function handleReceiveMessage(event) {
+            console.log(event.data)
+        }
+
+        function receiveChannelCallback(event) {
+            console.log("Data channel received")
+            receiveChannel = event.channel;
+            receiveChannel.onmessage = handleReceiveMessage;
+            // receiveChannel.onopen = handleReceiveChannelStatusChange;
+            // receiveChannel.onclose = handleReceiveChannelStatusChange;
+        }
+
+        function setupConnection() {
+            pc = new RTCPeerConnection(configuration);
+            pc.onicecandidate = ({ candidate }) => {
+                console.log(`ice candidate ${JSON.stringify(candidate)}`)
+                let msg = { "id": to, "body": JSON.stringify(candidate) }
+                signaling.send(msg)
+            };
+
+
+            pc.onnegotiationneeded = async () => {
+                console.log('Negotiation is needed')
+                try {
+                    await pc.setLocalDescription(await pc.createOffer());
+                    // send the offer to the other peer
+                    let msg = { "id": to, "body": JSON.stringify({ desc: pc.localDescription }) }
+                    signaling.send(msg);
+                    // signaling.send({ desc: pc.localDescription });
+                } catch (err) {
+                    console.error(err);
+                }
+            };
+
+            pc.ontrack = (event) => {
+                console.log("New track received")
+                // don't set srcObject again if it is already set.
+                if (remoteView.srcObject) return;
+                remoteView.srcObject = event.streams[0];
+            };
+
+            pc.ondatachannel = receiveChannelCallback;
+
+        }
 
         async function start() {
             try {
+
                 // get local stream, show it in self-view and add it to be sent
                 const stream =
                     await navigator.mediaDevices.getUserMedia(constraints);
                 stream.getTracks().forEach((track) =>
                     pc.addTrack(track, stream));
-                // selfView.srcObject = stream;
+                sendChannel = pc.createDataChannel("sendChannel");
+
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function hangup(sendBack) {
+            try {
+                if (sendBack) {
+                    let msg = { "id": to, "body": JSON.stringify({ hangup: true }) }
+                    signaling.send(msg);
+                }
+
+                remoteView.srcObject = null;
+                pc.close();
+                pc.onicecandidate = null;
+                pc.ontrack = null;
+                setupConnection();
             } catch (err) {
                 console.error(err);
             }
@@ -89,13 +164,15 @@
 
         const listener = async (data) => {
             try {
-                console.log(`Signaling message received ${JSON.stringify(data)}`)
-                if (data.body != null) {
-                    var obj = JSON.parse(data.body)
-                    if (obj.type == "desc") {
-                        desc = obj;
+                var parsedEvent = JSON.parse(data.data);
+                if (parsedEvent.body != null) {
+                    console.log(parsedEvent.body);
+                    parse = JSON.parse(parsedEvent.body)
+                    if (parse != null && parse.desc != null) {
+                        console.log(`offer!!!!`)
+                        desc = parse.desc
                         // if we get an offer, we need to reply with an answer
-                        if (desc.type === 'offer') {
+                        if (desc.type === 'offer' || desc.type === 'OFFER') {
                             await pc.setRemoteDescription(desc);
                             const stream =
                                 await navigator.mediaDevices.getUserMedia(constraints);
@@ -104,15 +181,19 @@
                             await pc.setLocalDescription(await pc.createAnswer());
 
 
-                            let msg = { "id": to, "body": JSON.stringify({ "type": "desc", "body": pc.localDescription }) }
+                            let msg = { "id": to, "body": JSON.stringify({ desc: pc.localDescription }) }
                             signaling.send(msg);
                         } else if (desc.type === 'answer') {
                             await pc.setRemoteDescription(desc);
                         } else {
                             console.log('Unsupported SDP type.');
                         }
-                    } else if (obj.type == "candidate") {
-                        await pc.addIceCandidate(obj);
+                    } else if (parse != null && parse.candidate != null) {
+                        console.log(`candidate!!!! ${JSON.stringify(parse)}`);
+                        await pc.addIceCandidate(parse);
+                    } else if (parse != null && parse.hangup) {
+                        console.log("hangup!!!!")
+                        hangup(false);
                     }
                 }
             } catch (err) {
@@ -121,13 +202,13 @@
         };
 
         signaling.addListener(data => {
-            console.log("adding listener again")
+            console.log(`adding listener again for ${JSON.stringify(data)}`)
             listener(data).then(res => {
-                console.log("Finished")
+                console.log("finished")
             });
         });
 
-        start().then(result => console.log("started"));
+        setupConnection();
 
     </script>
 </body>
