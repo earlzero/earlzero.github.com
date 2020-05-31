@@ -61,7 +61,7 @@
         const signaling = new SignalingChannel(`wss://ezie.duckdns.org:8443/?from=${from}&to=${to}`);
         signaling.connect();
         const constraints = {
-            audio: false,
+            audio: true,
             "video": {
                 "width": {
                     "min": "300",
